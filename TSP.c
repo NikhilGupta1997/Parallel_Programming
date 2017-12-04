@@ -132,7 +132,6 @@ void random_chromosome(int size, char pop[]) {
 	int id, count = 0;
 	while(count < size) {
 		id = rand()%size;
-		// printf("%d\n", id);
 		if(index[id] != 1) {
 			pop[count] = map_char(id+1);
 			count++;
@@ -515,7 +514,6 @@ int main(int argc, char *argv[]) {
 		// Parent Iteration
 		counter++;
 		limit_count++;
-		// printf( "\n\nITERATION %d\n", counter);
 		generate_children(size, parents);
 		sort(size, parents, 0, 2*parent_size-1);
 
@@ -539,7 +537,6 @@ int main(int argc, char *argv[]) {
 		// Child Iteration
 		counter++;
 		limit_count++;
-		// printf( "\n\nITERATION %d\n", counter);
 		if(limit_count > iter_limit) 
 			break;
 		generate_children(size, children);

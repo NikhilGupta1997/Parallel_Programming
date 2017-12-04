@@ -15,8 +15,9 @@ struct data {
 	long long start;
 	long long finish;
 	long long d;
-}thread_data[256];
+} thread_data[256];
 
+// Get depth of tree
 long long mylog2(long long num) {
 	long long count = 0;
 	while(num != 0) {
@@ -26,6 +27,7 @@ long long mylog2(long long num) {
 	return count;
 }
 
+// Upsweep Function per Thread
 void *upthread(void * th_data) {
   	struct data *t_data = (struct data*)th_data;
   	long long start, end, i, d;
@@ -37,6 +39,7 @@ void *upthread(void * th_data) {
   	}
 }
 
+// Downsweep Function per Thread
 void *downthread(void * th_data) {
   	struct data *t_data = (struct data*)th_data;
   	long long start, end, i, d;
@@ -50,6 +53,7 @@ void *downthread(void * th_data) {
 	}
 }
 
+// Start multiple threads to perform upsweep
 void upsweep(long long arr[]) {
 	for(long d = 0; d <= mylog2(SIZE) - 1; d++) {
 		long long parses = (long long)(SIZE/(1<<(d+1)));
@@ -69,6 +73,7 @@ void upsweep(long long arr[]) {
 	}
 }
 
+// Start multiple threads to perform downsweep
 void downsweep(long long arr[]) {
 	arr[SIZE-1] = 0;
 	for(long long d = mylog2(SIZE)-1; d >= 0; d--) {
@@ -90,6 +95,8 @@ void downsweep(long long arr[]) {
 }
 
 int main(int argc, char *argv[]) {
+
+	// Read input from file
 	FILE *inptr, *outptr;
 	NUMTHREADS = atoi(argv[1]);
 
@@ -105,6 +112,7 @@ int main(int argc, char *argv[]) {
 
 	long long last = sums[SIZE-1];
 
+	// Perform Parallel Prefix Sum
 	printf("%s\n","Starting");
 	double start, end; 
 	start = omp_get_wtime();
@@ -115,12 +123,14 @@ int main(int argc, char *argv[]) {
 	end = omp_get_wtime();
 	double totalTime = (double)(end - start); 
 
+	// Print Result to Output File
 	outptr = fopen("output.txt", "w+");
 	for(int i = 1; i < SIZE; i++) 
 		fprintf(outptr, "%lld ", sums[i]);
 	fprintf(outptr, "%lld", sums[SIZE-1]+last);
 	fclose(outptr);
 
+	// MD5 checksum
  	unsigned char c[MD5_DIGEST_LENGTH];
 	int bytes;
     unsigned char data[1024];

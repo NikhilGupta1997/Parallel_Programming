@@ -9,6 +9,7 @@
 
 using namespace std;
 
+// Read from input file
 void read_file(char file[], vector<long> &inputs, long &size) {
     fstream in;
     in.open(file);
@@ -27,7 +28,7 @@ void read_file(char file[], vector<long> &inputs, long &size) {
     in.close();
 }
 
-//Function to prlong values of arr
+//Function to swap long values of arr
 void swap_pos(vector<long> &arr, long a, long b){
     long temp = arr[b];
     arr[b] = arr[a];
@@ -41,6 +42,7 @@ void print_array(vector<long> &arr){
     }
 }
 
+// Quicksort Algorithm
 void quicksort(vector<long> &arr, long piv, long high){
     if(piv >= high){
         return 0;
@@ -73,6 +75,7 @@ void quicksort(vector<long> &arr, long piv, long high){
     return 0;
 }
 
+// Returns the median of a vector
 long get_median(vector<long> &arr, long size) {
     if(size%2 == 0)
         return arr[size/2-1];
@@ -80,6 +83,7 @@ long get_median(vector<long> &arr, long size) {
         return arr[size/2];
 }
 
+// Split a vector into 2 vectors
 void split(vector<long> &local, vector<long> &left, vector<long> &right, long median, long &size1, long &size2) {
     for(long i = 0; i < local.size(); i++) {
         if(local[i] <= median) {
@@ -93,6 +97,7 @@ void split(vector<long> &local, vector<long> &left, vector<long> &right, long me
     size2 = right.size();
 }
 
+// Merge two vectors
 void merge(vector<long> &local, vector<long> &left, vector<long> &right) {
     int size = left.size() + right.size();
     int a = 0, b = 0;
@@ -122,16 +127,17 @@ int main(int argc, char** argv) {
     long size;
     read_file(argv[1], inputs, size);
 
+    // Create output file name
     string inputfile(argv[1]);
     string prefix = inputfile.substr(5);
     string filen;
     filen += "output";
     filen += prefix;
-
     char filename[1024];
     strcpy(filename, filen.c_str());
 
     clock_t begin = clock();
+
     // Initialize the MPI environment
     MPI_Init(NULL, NULL);
 
@@ -194,15 +200,11 @@ int main(int argc, char** argv) {
         }
         else {
             long source_median = world_rank - world_rank % pow_level;
-            // cout<<source_median << "Source\n";
             MPI_Recv(&median, 1, MPI_LONG, source_median, 1, MPI_COMM_WORLD, &status);
         }
 
-        // cout<<"median = "<<median<<endl;
-
+        // Split along median
         split(local, left, right, median, size_left, size_right);
-
-        // cout<<world_rank<<" Size1 = "<<size_left<<"  Size2 = "<<size_right<<endl;
 
         if(world_rank % pow_level < pow_level/2) {
             source = world_rank;
@@ -217,19 +219,15 @@ int main(int argc, char** argv) {
         if(world_rank % pow_level < pow_level/2) {
             MPI_Send(&size_right, 1, MPI_LONG, dest, 1, MPI_COMM_WORLD); 
             MPI_Recv(&size_left, 1, MPI_LONG, dest, 1, MPI_COMM_WORLD, &status);
-            // cout<<world_rank<<" Sending to "<<dest<<endl;
             MPI_Send(&right[0], size_right, MPI_LONG, dest, 1, MPI_COMM_WORLD); 
-            // cout<<world_rank<<" Receiving from "<<dest<<endl;
             temp.resize(size_left);
             MPI_Recv(&temp[0], size_left, MPI_LONG, dest, 2, MPI_COMM_WORLD, &status);
         }
         else {
             MPI_Recv(&size_right, 1, MPI_LONG, source, 1, MPI_COMM_WORLD, &status);
             MPI_Send(&size_left, 1, MPI_LONG, source, 1, MPI_COMM_WORLD); 
-            // cout<<world_rank<<" Receiving from "<<source<<endl;
             temp.resize(size_right);
             MPI_Recv(&temp[0], size_right, MPI_LONG, source, 1, MPI_COMM_WORLD, &status);
-            // cout<<world_rank<<" Sending to "<<source<<endl;
             MPI_Send(&left[0], size_left, MPI_LONG, source, 2, MPI_COMM_WORLD); 
         }
 
@@ -247,6 +245,7 @@ int main(int argc, char** argv) {
     }
 
     clock_t end = clock();
+
     // Gather all the sorted lists to the main process and print to output file
     if(world_rank == 0) {
         
@@ -271,6 +270,7 @@ int main(int argc, char** argv) {
     }
 
     cout<<(double)(end - begin) / CLOCKS_PER_SEC;
+
     // // Finalize the MPI environment.
     MPI_Finalize();
 }
